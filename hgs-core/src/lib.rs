@@ -88,8 +88,8 @@ mod tests {
 
     #[test]
     fn test_simulate_pull_soft_pity_five_star() {
-        let pity = FIVE_STAR_SOFT_PITY_START + 15u8;
-        let pity_increase = (pity - (FIVE_STAR_SOFT_PITY_START - 1)-1) as f64 * FIVE_STAR_SOFT_PITY_INCREASE;
+        let pity = FIVE_STAR_SOFT_PITY_START + 2u8;
+        let pity_increase = (pity - (FIVE_STAR_SOFT_PITY_START - 1)-1) as f64 * FIVE_STAR_SOFT_PITY_INCREASE; // extra minus 1 for goofy off by one errors (e.g. + 79 pulls)
         let initial = ((FIVE_STAR_BASE_RATE + pity_increase) * u64::MAX as f64) as u64;
         let mut rng = StepRng::new(initial,0);
 
