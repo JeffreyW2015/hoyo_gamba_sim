@@ -14,13 +14,13 @@ pub enum Rarity {
     FiveStar,
 }
 
-pub fn simulate_pull<R: Rng>(rng: &mut R, pull_count: u8) -> Rarity {
-    if pull_count == FIVE_STAR_HARD_PITY {
+pub fn simulate_pull<R: Rng>(rng: &mut R, pity: u8) -> Rarity {
+    if pity == FIVE_STAR_HARD_PITY {
         return Rarity::FiveStar
     }
 
-    let five_star_rate = if pull_count >= FIVE_STAR_SOFT_PITY_START {
-        let increase = FIVE_STAR_SOFT_PITY_INCREASE * (pull_count - (FIVE_STAR_SOFT_PITY_START - 1)) as f64;
+    let five_star_rate = if pity >= FIVE_STAR_SOFT_PITY_START {
+        let increase = FIVE_STAR_SOFT_PITY_INCREASE * (pity - (FIVE_STAR_SOFT_PITY_START - 1)) as f64;
         FIVE_STAR_BASE_RATE + increase
     } else {
         FIVE_STAR_BASE_RATE
