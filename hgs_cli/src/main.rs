@@ -1,25 +1,43 @@
-use hgs_core::{FiveStarType, GachaState, Rarity};
+use hgs_core::{enums::{FiveStarType, Rarity}, settings::Settings, GachaState};
 use rand::rng;
 use std::collections::HashMap;
 
 fn main() {
-    let mut state = GachaState::new();
-    let mut rng = rng();
-    let num_pulls = 1_233_322;
+    let settings = Settings::load_from_file("settings.json").unwrap();
+    let mut state = GachaState::new(settings);
+    let mut rng: rand::prelude::ThreadRng = rng();
+    let num_pulls = 180;
 
     let mut history: HashMap<u8, (u64, u64)> = HashMap::new();
+
+    let mut previous_five_star: Option<FiveStarType> = None;
+    let mut wins = 0;
+    let mut guaranteeds = 0;
+    let mut losses = 0;
 
     for _ in 0..num_pulls {
         let pity = state.pity + 1;
         let rarity = state.simulate_pull(&mut rng);
         if rarity == Rarity::FiveStar(FiveStarType::Standard) {
-            let pity_entry = history.entry(pity).or_insert((0,0));
+            let pity_entry = history.entry(pity).or_insert((0, 0));
             pity_entry.0 += 1;
-        }
-        if rarity == Rarity::FiveStar(FiveStarType::Limited) {
-            let pity_entry = history.entry(pity).or_insert((0,0));
+
+            if previous_five_star == None || previous_five_star == Some(FiveStarType::Limited) {
+                losses += 1;
+            }
+            previous_five_star = Some(FiveStarType::Standard);
+        } else if rarity == Rarity::FiveStar(FiveStarType::Limited) {
+            let pity_entry = history.entry(pity).or_insert((0, 0));
             pity_entry.0 += 1;
             pity_entry.1 += 1;
+
+            if previous_five_star == None || previous_five_star == Some(FiveStarType::Limited) {
+                wins += 1;
+            }
+            if previous_five_star == Some(FiveStarType::Standard) {
+                guaranteeds += 1;
+            }
+            previous_five_star = Some(FiveStarType::Limited);
         }
     }
 
@@ -32,25 +50,28 @@ fn main() {
     for (pity_count, (total, limited)) in sorted_history {
         println!(
             "Pity {}: {} total, {} Limited, {} Standard",
-            pity_count, total, limited, total - limited
+            pity_count,
+            total,
+            limited,
+            total - limited
         );
         total_five_stars += total;
         total_limited += limited;
     }
 
     println!("\nSummary");
-    println!(
-        "Total Five Stars: {}",
-        total_five_stars
-    );
-    println!(
-        "Total Limited: {}",
-        total_limited
-    );
-    println!(
-        "Total Standard: {}",
-        total_five_stars - total_limited
-    );
+    println!("Total Five Stars: {}", total_five_stars);
+    println!("Total Limited: {}", total_limited);
+    if total_five_stars > 0 {
+        println!(
+            "Wins: {}, Losses: {}, Gauranteeds: {}, Win Ratio: {}",
+            wins,
+            losses,
+            guaranteeds,
+            (wins as f64) / ((wins + losses) as f64)
+        );
+    }
+    println!("Total Standard: {}", total_five_stars - total_limited);
 
     if total_five_stars > 0 {
         println!(

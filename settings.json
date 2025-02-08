@@ -1,0 +1,8 @@
+{
+    "five_star_base_rate": 0.006,
+    "five_star_hard_pity": 90,
+    "five_star_soft_pity": 74,
+    "five_star_soft_pity_rate_increase": 0.06,
+    "five_star_limited_rate": 0.55,
+    "four_star_base_rate": 0.05
+}
