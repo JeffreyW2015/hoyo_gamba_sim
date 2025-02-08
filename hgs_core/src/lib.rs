@@ -1,6 +1,6 @@
 use rand::Rng;
 
-const FIVE_STAR_BASE_RATE: f64 = 0.007; // 0.7%
+const FIVE_STAR_BASE_RATE: f64 = 0.006; // 0.6%
 const FIVE_STAR_HARD_PITY: u8 = 90;
 const FIVE_STAR_SOFT_PITY_INCREASE: f64 = 0.06; // 6%
 const FIVE_STAR_SOFT_PITY_START: u8 = 74;

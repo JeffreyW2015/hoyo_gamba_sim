@@ -1,0 +1,8 @@
+[package]
+name = "hgs_cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hgs_core = { path = "../hgs_core" }
+rand = "0.9"

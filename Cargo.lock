@@ -33,6 +33,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "hgs_cli"
+version = "0.1.0"
+dependencies = [
+ "hgs_core",
+ "rand",
+]
+
+[[package]]
 name = "hgs_core"
 version = "0.1.0"
 dependencies = [
