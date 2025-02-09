@@ -6,8 +6,9 @@ fn main() {
     let settings = Settings::load_from_file("settings.json").unwrap();
     let mut state = GachaState::new(settings);
     let mut rng: rand::prelude::ThreadRng = rng();
-    let num_pulls = 180;
+    let num_pulls = 1718;
 
+    // pity count: (total, limited count)
     let mut history: HashMap<u8, (u64, u64)> = HashMap::new();
 
     let mut previous_five_star: Option<FiveStarType> = None;
@@ -16,10 +17,12 @@ fn main() {
     let mut losses = 0;
 
     for _ in 0..num_pulls {
-        let pity = state.pity + 1;
+        let current_five_star_pull = state.five_star_pity + 1;
+        let current_four_star_pull = state.four_star_pity + 1;
+
         let rarity = state.simulate_pull(&mut rng);
         if rarity == Rarity::FiveStar(FiveStarType::Standard) {
-            let pity_entry = history.entry(pity).or_insert((0, 0));
+            let pity_entry = history.entry(current_five_star_pull).or_insert((0, 0));
             pity_entry.0 += 1;
 
             if previous_five_star == None || previous_five_star == Some(FiveStarType::Limited) {
@@ -27,7 +30,7 @@ fn main() {
             }
             previous_five_star = Some(FiveStarType::Standard);
         } else if rarity == Rarity::FiveStar(FiveStarType::Limited) {
-            let pity_entry = history.entry(pity).or_insert((0, 0));
+            let pity_entry = history.entry(current_five_star_pull).or_insert((0, 0));
             pity_entry.0 += 1;
             pity_entry.1 += 1;
 
@@ -38,6 +41,8 @@ fn main() {
                 guaranteeds += 1;
             }
             previous_five_star = Some(FiveStarType::Limited);
+        } else if matches!(rarity, Rarity::FourStar(_)) {
+
         }
     }
 

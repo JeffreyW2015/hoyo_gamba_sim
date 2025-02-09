@@ -4,5 +4,7 @@
     "five_star_soft_pity": 74,
     "five_star_soft_pity_rate_increase": 0.06,
     "five_star_limited_rate": 0.55,
-    "four_star_base_rate": 0.05
+    "four_star_base_rate": 0.05,
+    "four_star_hard_pity": 10,
+    "four_star_banner_rate": 0.5
 }
