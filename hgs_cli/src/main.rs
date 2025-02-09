@@ -20,7 +20,7 @@ fn main() {
         let current_five_star_pull = state.five_star_pity + 1;
         let current_four_star_pull = state.four_star_pity + 1;
 
-        let rarity = state.simulate_pull(&mut rng);
+        let rarity = state.pull(&mut rng);
         if rarity == Rarity::FiveStar(FiveStarType::Standard) {
             let pity_entry = history.entry(current_five_star_pull).or_insert((0, 0));
             pity_entry.0 += 1;
