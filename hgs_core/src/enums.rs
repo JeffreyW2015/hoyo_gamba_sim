@@ -1,21 +1,31 @@
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rarity {
     ThreeStar,
     FourStar(FourStarType),
     FiveStar(FiveStarType),
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum FiveStarType {
     Standard,
-    Limited
+    Limited,
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum FourStarType {
-    BannerA,
-    BannerB,
-    BannerC,
-    NonBannerCharacter,
+    Banner(FourStarBanner),
+    Loss(FourStarLoss),
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
+pub enum FourStarBanner {
+    A,
+    B,
+    C,
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
+pub enum FourStarLoss {
+    Character,
     LightCone
 }

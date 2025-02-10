@@ -2,18 +2,18 @@ pub mod settings;
 use settings::Settings;
 
 pub mod enums;
-use enums::{FiveStarType, FourStarType, Rarity};
+use enums::{FiveStarType, FourStarBanner, FourStarLoss, FourStarType, Rarity};
 
 use rand::Rng;
 
 pub struct GachaState {
-    pub previous_five_star: Option<FiveStarType>,
-    pub five_star_pity: u8,
+    previous_five_star: Option<FiveStarType>,
+    five_star_pity: u8,
 
-    pub previous_four_star: Option<FourStarType>,
-    pub four_star_pity: u8,
+    previous_four_star: Option<FourStarType>,
+    four_star_pity: u8,
 
-    pub settings: Settings
+    settings: Settings,
 }
 
 impl GachaState {
@@ -25,7 +25,7 @@ impl GachaState {
             previous_four_star: None,
             four_star_pity: 0,
 
-            settings
+            settings,
         }
     }
 
@@ -49,7 +49,8 @@ impl GachaState {
         if roll < five_star_rate {
             Rarity::FiveStar(self.pull_five_star(rng))
         } else if self.four_star_pity >= self.settings.four_star_hard_pity
-            || roll < (five_star_rate + self.settings.four_star_base_rate) {
+            || roll < (five_star_rate + self.settings.four_star_base_rate)
+        {
             Rarity::FourStar(self.pull_four_star(rng))
         } else {
             Rarity::ThreeStar
@@ -60,14 +61,14 @@ impl GachaState {
         self.five_star_pity = 0;
         let pull = match self.previous_five_star {
             None | Some(FiveStarType::Limited) => self.roll_five_star(rng),
-            Some(FiveStarType::Standard) => FiveStarType::Limited
+            Some(FiveStarType::Standard) => FiveStarType::Limited,
         };
 
         self.previous_five_star = Some(pull);
 
         pull
     }
-    
+
     fn roll_five_star<R: Rng>(&self, rng: &mut R) -> FiveStarType {
         let roll: f64 = rng.random();
 
@@ -81,9 +82,10 @@ impl GachaState {
     fn pull_four_star<R: Rng>(&mut self, rng: &mut R) -> FourStarType {
         self.four_star_pity = 0;
         let pull = match self.previous_four_star {
-            None | Some(FourStarType::NonBannerCharacter) 
-            | Some(FourStarType::LightCone) => self.pull_banner_four_star(rng),
-            _ => self.roll_four_star(rng)
+            None | Some(FourStarType::Loss(_)) => {
+                FourStarType::Banner(self.pull_banner_four_star(rng))
+            }
+            _ => self.roll_four_star(rng),
         };
 
         self.previous_four_star = Some(pull);
@@ -92,30 +94,31 @@ impl GachaState {
     }
 
     fn roll_four_star<R: Rng>(&self, rng: &mut R) -> FourStarType {
-        let roll: f64 = rng.random();
-
-        if roll < self.settings.four_star_banner_rate {
-            self.pull_banner_four_star(rng)
-        } else {
-            let roll  = rng.random_range(0..2);
-            match roll {
-                0 => FourStarType::NonBannerCharacter,
-                1 => FourStarType::LightCone,
-                _ => panic!("impossible roll for four star nonbanner character/lightcone")
-            }
-        }
-    }
-    
-    fn pull_banner_four_star<R: Rng>(&self, rng: &mut R) -> FourStarType {
-        let roll  = rng.random_range(0..3);
+        // 50/50 shot for character vs lightcone, if character, 50/50 shot for banner
+        let roll = rng.random_range(0..2);
         match roll {
-            0  => FourStarType::BannerA,
-            1  => FourStarType::BannerB,
-            2  => FourStarType::BannerC,
-            _ => panic!("impossible roll for four star banner win")
+            0 => {
+                let roll: f64 = rng.random();
+                if roll < self.settings.four_star_banner_rate {
+                    FourStarType::Banner(self.pull_banner_four_star(rng))
+                } else {
+                    FourStarType::Loss(FourStarLoss::Character)
+                }
+            }
+            1 => FourStarType::Loss(FourStarLoss::LightCone),
+            _ => panic!("impossible roll four star character vs light cone"),
         }
     }
 
+    fn pull_banner_four_star<R: Rng>(&self, rng: &mut R) -> FourStarBanner {
+        let roll = rng.random_range(0..3);
+        match roll {
+            0 => FourStarBanner::A,
+            1 => FourStarBanner::B,
+            2 => FourStarBanner::C,
+            _ => panic!("impossible roll for four star banner win"),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -124,7 +127,6 @@ mod tests {
 
     use super::*;
     use rand::rngs::mock::StepRng;
-
 
     #[test]
     fn test_simulate_pull_five_star() {
@@ -143,13 +145,17 @@ mod tests {
     #[test]
     fn test_simulate_pull_four_star() {
         let settings = Settings::default();
-        let initial = ((settings.five_star_base_rate + settings.four_star_base_rate) * u64::MAX as f64) as u64;
+        let initial = ((settings.five_star_base_rate + settings.four_star_base_rate)
+            * u64::MAX as f64) as u64;
         let mut state = GachaState::new(settings);
         let mut rng = StepRng::new(initial, 0);
 
         let rarity = state.pull(&mut rng);
 
-        assert_eq!(rarity, Rarity::FourStar(FourStarType::BannerB));
+        assert_eq!(
+            rarity,
+            Rarity::FourStar(FourStarType::Banner(FourStarBanner::C))
+        );
         assert_eq!(state.five_star_pity, 1);
         assert_eq!(state.four_star_pity, 0);
     }
@@ -157,7 +163,8 @@ mod tests {
     #[test]
     fn test_simulate_pull_three_star() {
         let settings = Settings::default();
-        let initial = ((settings.five_star_base_rate + settings.four_star_base_rate + 1f64) * u64::MAX as f64) as u64;
+        let initial = ((settings.five_star_base_rate + settings.four_star_base_rate + 1f64)
+            * u64::MAX as f64) as u64;
         let mut state = GachaState::new(settings);
         let mut rng = StepRng::new(initial, 0);
 
@@ -170,7 +177,7 @@ mod tests {
     #[test]
     fn test_simulate_pull_hard_pity_five_star() {
         let settings = Settings::default();
-        let mut rng = StepRng::new(0,0);
+        let mut rng = StepRng::new(0, 0);
         let mut state = GachaState::new(settings);
         state.five_star_pity = state.settings.five_star_hard_pity - 1;
 
@@ -185,10 +192,13 @@ mod tests {
         let settings = Settings::default();
         let mut state = GachaState::new(settings);
         state.five_star_pity = state.settings.five_star_soft_pity + 1u8;
-        let pity_increase = (state.five_star_pity - (state.settings.five_star_soft_pity - 1)) as f64 * state.settings.five_star_soft_pity_rate_increase; // extra minus 1 for goofy off by one errors (e.g. + 79 pulls)
+        let pity_increase = (state.five_star_pity - (state.settings.five_star_soft_pity - 1))
+            as f64
+            * state.settings.five_star_soft_pity_rate_increase; // extra minus 1 for goofy off by one errors (e.g. + 79 pulls)
 
-        let initial = ((state.settings.five_star_base_rate + pity_increase) * u64::MAX as f64) as u64;
-        let mut rng = StepRng::new(initial,0);
+        let initial =
+            ((state.settings.five_star_base_rate + pity_increase) * u64::MAX as f64) as u64;
+        let mut rng = StepRng::new(initial, 0);
 
         let rarity = state.pull(&mut rng);
 
@@ -203,8 +213,9 @@ mod tests {
         state.five_star_pity = state.settings.five_star_soft_pity - 2u8;
         let pity_increase = state.settings.five_star_soft_pity_rate_increase;
 
-        let initial = ((state.settings.five_star_base_rate + pity_increase) * u64::MAX as f64) as u64;
-        let mut rng = StepRng::new(initial,0);
+        let initial =
+            ((state.settings.five_star_base_rate + pity_increase) * u64::MAX as f64) as u64;
+        let mut rng = StepRng::new(initial, 0);
 
         // first pull
         let rarity = state.pull(&mut rng); // no soft pity
@@ -221,7 +232,7 @@ mod tests {
     fn test_simulate_pull_five_star_standard() {
         let settings = Settings::default();
         let mut state = GachaState::new(settings);
-        state.five_star_pity = state.settings.five_star_hard_pity -1; // guarantee next
+        state.five_star_pity = state.settings.five_star_hard_pity - 1; // guarantee next
 
         let initial = ((state.settings.five_star_limited_rate + 0.1) * u64::MAX as f64) as u64; // "lose" roll, hence + 0.1
         let mut rng = StepRng::new(initial, 0);
@@ -237,7 +248,7 @@ mod tests {
     fn test_simulate_pull_five_star_limited() {
         let settings = Settings::default();
         let mut state = GachaState::new(settings);
-        state.five_star_pity = state.settings.five_star_hard_pity -1; // guarantee next
+        state.five_star_pity = state.settings.five_star_hard_pity - 1; // guarantee next
 
         let initial = ((state.settings.five_star_limited_rate - 0.1) * u64::MAX as f64) as u64;
         let mut rng = StepRng::new(initial, 0);
