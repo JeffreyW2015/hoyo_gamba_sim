@@ -16,7 +16,8 @@ fn main() {
     let mut pulls = PullHistory::new();
 
     for _ in 0..num_pulls {
-        pulls.add(state.pull(&mut rng))
+        let pull = state.pull(&mut rng).expect("error occurred while pulling");
+        pulls.add(pull)
     }
 
     println!("\nSummary");
