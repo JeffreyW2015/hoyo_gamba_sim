@@ -23,7 +23,7 @@ fn main() {
     println!("=======\n");
     println!("Total pulls: {}", pulls.total_count());
     display_five_star_info(&pulls);
-    // display_four_star_info(&pulls);
+    display_four_star_info(&pulls);
 
     let duration = start.elapsed();
     println!("Time taken {:.2?} seconds", duration);
@@ -83,7 +83,7 @@ fn display_five_star_info(pulls: &PullHistory) {
     }
 }
 
-fn _display_four_star_info(pulls: &PullHistory) {
+fn display_four_star_info(pulls: &PullHistory) {
     println!("\nFour Stars");
     println!("----------\n");
     let metadata = pulls.four_star_metadata();

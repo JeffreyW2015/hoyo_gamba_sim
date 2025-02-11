@@ -7,10 +7,10 @@ use enums::{FiveStarType, FourStarBanner, FourStarLoss, FourStarType, Rarity};
 use rand::Rng;
 
 pub struct GachaState {
-    previous_five_star: Option<FiveStarType>,
+    five_star_guaranteed: bool,
     five_star_pity: u8,
 
-    previous_four_star: Option<FourStarType>,
+    four_star_guaranteed: bool,
     four_star_pity: u8,
 
     settings: Settings,
@@ -19,10 +19,10 @@ pub struct GachaState {
 impl GachaState {
     pub fn new(settings: Settings) -> Self {
         GachaState {
-            previous_five_star: None,
+            five_star_guaranteed: false,
             five_star_pity: 0,
 
-            previous_four_star: None,
+            four_star_guaranteed: false,
             four_star_pity: 0,
 
             settings,
@@ -59,12 +59,16 @@ impl GachaState {
 
     fn pull_five_star<R: Rng>(&mut self, rng: &mut R) -> FiveStarType {
         self.five_star_pity = 0;
-        let pull = match self.previous_five_star {
-            None | Some(FiveStarType::Limited) => self.roll_five_star(rng),
-            Some(FiveStarType::Standard) => FiveStarType::Limited,
+        let pull = if self.five_star_guaranteed {
+            FiveStarType::Limited
+        } else {
+            self.roll_five_star(rng)
         };
 
-        self.previous_five_star = Some(pull);
+        self.five_star_guaranteed = match pull {
+            FiveStarType::Limited => false,
+            FiveStarType::Standard => true
+        };
 
         pull
     }
@@ -81,14 +85,16 @@ impl GachaState {
 
     fn pull_four_star<R: Rng>(&mut self, rng: &mut R) -> FourStarType {
         self.four_star_pity = 0;
-        let pull = match self.previous_four_star {
-            None | Some(FourStarType::Loss(_)) => {
-                FourStarType::Banner(self.pull_banner_four_star(rng))
-            }
-            _ => self.roll_four_star(rng),
+        let pull = if self.four_star_guaranteed {
+            FourStarType::Banner(self.pull_banner_four_star(rng))
+        } else {
+            self.roll_four_star(rng)
         };
 
-        self.previous_four_star = Some(pull);
+        self.four_star_guaranteed = match pull {
+            FourStarType::Banner(_) => false,
+            FourStarType::Loss(_) => true,
+        };
 
         pull
     }
@@ -154,7 +160,7 @@ mod tests {
 
         assert_eq!(
             rarity,
-            Rarity::FourStar(FourStarType::Banner(FourStarBanner::C))
+            Rarity::FourStar(FourStarType::Loss(FourStarLoss::LightCone))
         );
         assert_eq!(state.five_star_pity, 1);
         assert_eq!(state.four_star_pity, 0);
@@ -240,7 +246,7 @@ mod tests {
         let rarity = state.pull(&mut rng);
 
         assert_eq!(rarity, Rarity::FiveStar(FiveStarType::Standard));
-        assert_eq!(state.previous_five_star, Some(FiveStarType::Standard));
+        assert_eq!(state.five_star_guaranteed, true);
         assert_eq!(state.five_star_pity, 0);
     }
 
@@ -256,7 +262,7 @@ mod tests {
         let rarity = state.pull(&mut rng);
 
         assert_eq!(rarity, Rarity::FiveStar(FiveStarType::Limited));
-        assert_eq!(state.previous_five_star, Some(FiveStarType::Limited));
+        assert_eq!(state.five_star_guaranteed, false);
         assert_eq!(state.five_star_pity, 0);
     }
 }
