@@ -163,7 +163,7 @@ impl FourStarMetadata {
         self.banners() + self.non_banners()
     }
 
-    pub fn pity_of_type(&self, pity: u8, four_star: FourStarType) -> usize {
+    pub fn _pity_of_type(&self, pity: u8, four_star: FourStarType) -> usize {
         self.pity_to_pulls
             .get(&pity)
             .and_then(|inner| inner.get(&four_star))
