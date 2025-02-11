@@ -2,7 +2,7 @@ pub mod settings;
 use settings::Settings;
 
 pub mod enums;
-use enums::{FiveStarType, FourStarBanner, FourStarLoss, FourStarType, Rarity};
+use enums::{FiveStarType, FourStarBanner, FourStarLoss, FourStarType, Pull};
 
 pub mod errors;
 use errors::PullError;
@@ -32,11 +32,11 @@ impl GachaState {
         }
     }
 
-    pub fn pull<R: Rng>(&mut self, rng: &mut R) -> Result<Rarity, PullError> {
+    pub fn pull<R: Rng>(&mut self, rng: &mut R) -> Result<Pull, PullError> {
         self.five_star_pity += 1;
         self.four_star_pity += 1;
         if self.five_star_pity >= self.settings.five_star_hard_pity {
-            return Ok(Rarity::FiveStar(self.pull_five_star(rng)));
+            return Ok(Pull::FiveStar(self.pull_five_star(rng)));
         }
 
         let five_star_rate = if self.five_star_pity >= self.settings.five_star_soft_pity {
@@ -50,14 +50,14 @@ impl GachaState {
         let roll: f64 = rng.random();
 
         if roll < five_star_rate {
-            Ok(Rarity::FiveStar(self.pull_five_star(rng)))
+            Ok(Pull::FiveStar(self.pull_five_star(rng)))
         } else if self.four_star_pity >= self.settings.four_star_hard_pity
             || roll < (five_star_rate + self.settings.four_star_base_rate)
         {
             let four_star = self.pull_four_star(rng)?;
-            Ok(Rarity::FourStar(four_star))
+            Ok(Pull::FourStar(four_star))
         } else {
-            Ok(Rarity::ThreeStar)
+            Ok(Pull::ThreeStar)
         }
     }
 
@@ -147,9 +147,9 @@ mod tests {
         let mut state = GachaState::new(settings);
         let mut rng = StepRng::new(initial, 0);
 
-        let rarity = state.pull(&mut rng).unwrap();
+        let pull = state.pull(&mut rng).unwrap();
 
-        assert_eq!(rarity, Rarity::FiveStar(FiveStarType::Limited));
+        assert_eq!(pull, Pull::FiveStar(FiveStarType::Limited));
         assert_eq!(state.five_star_pity, 0);
         assert_eq!(state.four_star_pity, 1);
     }
@@ -162,11 +162,11 @@ mod tests {
         let mut state = GachaState::new(settings);
         let mut rng = StepRng::new(initial, 0);
 
-        let rarity = state.pull(&mut rng).unwrap();
+        let pull = state.pull(&mut rng).unwrap();
 
         assert_eq!(
-            rarity,
-            Rarity::FourStar(FourStarType::Loss(FourStarLoss::LightCone))
+            pull,
+            Pull::FourStar(FourStarType::Loss(FourStarLoss::LightCone))
         );
         assert_eq!(state.five_star_pity, 1);
         assert_eq!(state.four_star_pity, 0);
@@ -180,9 +180,9 @@ mod tests {
         let mut state = GachaState::new(settings);
         let mut rng = StepRng::new(initial, 0);
 
-        let rarity = state.pull(&mut rng).unwrap();
+        let pull = state.pull(&mut rng).unwrap();
 
-        assert_eq!(rarity, Rarity::ThreeStar);
+        assert_eq!(pull, Pull::ThreeStar);
         assert_eq!(state.five_star_pity, 1);
     }
 
@@ -193,9 +193,9 @@ mod tests {
         let mut state = GachaState::new(settings);
         state.five_star_pity = state.settings.five_star_hard_pity - 1;
 
-        let rarity = state.pull(&mut rng).unwrap();
+        let pull = state.pull(&mut rng).unwrap();
 
-        assert_eq!(rarity, Rarity::FiveStar(FiveStarType::Limited));
+        assert_eq!(pull, Pull::FiveStar(FiveStarType::Limited));
         assert_eq!(state.five_star_pity, 0);
     }
 
@@ -212,9 +212,9 @@ mod tests {
             ((state.settings.five_star_base_rate + pity_increase) * u64::MAX as f64) as u64;
         let mut rng = StepRng::new(initial, 0);
 
-        let rarity = state.pull(&mut rng).unwrap();
+        let pull = state.pull(&mut rng).unwrap();
 
-        assert_eq!(rarity, Rarity::FiveStar(FiveStarType::Limited));
+        assert_eq!(pull, Pull::FiveStar(FiveStarType::Limited));
         assert_eq!(state.five_star_pity, 0);
     }
 
@@ -230,13 +230,13 @@ mod tests {
         let mut rng = StepRng::new(initial, 0);
 
         // first pull
-        let rarity = state.pull(&mut rng).unwrap(); // no soft pity
-        assert_ne!(rarity, Rarity::FiveStar(FiveStarType::Limited));
+        let pull = state.pull(&mut rng).unwrap(); // no soft pity
+        assert_ne!(pull, Pull::FiveStar(FiveStarType::Limited));
         assert_eq!(state.five_star_pity, 73);
 
         // second pull (now with pity)
-        let rarity = state.pull(&mut rng).unwrap(); // soft pity start
-        assert_eq!(rarity, Rarity::FiveStar(FiveStarType::Limited));
+        let pull = state.pull(&mut rng).unwrap(); // soft pity start
+        assert_eq!(pull, Pull::FiveStar(FiveStarType::Limited));
         assert_eq!(state.five_star_pity, 0);
     }
 
@@ -249,9 +249,9 @@ mod tests {
         let initial = ((state.settings.five_star_limited_rate + 0.1) * u64::MAX as f64) as u64; // "lose" roll, hence + 0.1
         let mut rng = StepRng::new(initial, 0);
 
-        let rarity = state.pull(&mut rng).unwrap();
+        let pull = state.pull(&mut rng).unwrap();
 
-        assert_eq!(rarity, Rarity::FiveStar(FiveStarType::Standard));
+        assert_eq!(pull, Pull::FiveStar(FiveStarType::Standard));
         assert_eq!(state.five_star_guaranteed, true);
         assert_eq!(state.five_star_pity, 0);
     }
@@ -265,9 +265,9 @@ mod tests {
         let initial = ((state.settings.five_star_limited_rate - 0.1) * u64::MAX as f64) as u64;
         let mut rng = StepRng::new(initial, 0);
 
-        let rarity = state.pull(&mut rng).unwrap();
+        let pull = state.pull(&mut rng).unwrap();
 
-        assert_eq!(rarity, Rarity::FiveStar(FiveStarType::Limited));
+        assert_eq!(pull, Pull::FiveStar(FiveStarType::Limited));
         assert_eq!(state.five_star_guaranteed, false);
         assert_eq!(state.five_star_pity, 0);
     }

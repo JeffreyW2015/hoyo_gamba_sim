@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use hgs_core::enums::{FiveStarType, FourStarBanner, FourStarLoss, FourStarType, Rarity};
+use hgs_core::enums::{FiveStarType, FourStarBanner, FourStarLoss, FourStarType, Pull};
 
 pub struct PullHistory {
-    pulls: Vec<Rarity>,
+    pulls: Vec<Pull>,
     five_star_metadata: FiveStarMetadata,
     four_star_metadata: FourStarMetadata,
 }
@@ -17,17 +17,17 @@ impl PullHistory {
         }
     }
 
-    pub fn add(&mut self, rarity: Rarity) {
-        self.pulls.push(rarity);
+    pub fn add(&mut self, pull: Pull) {
+        self.pulls.push(pull);
 
         self.five_star_metadata.pity += 1;
         self.four_star_metadata.pity += 1;
 
-        match rarity {
-            Rarity::FiveStar(five_star) => {
+        match pull {
+            Pull::FiveStar(five_star) => {
                 self.five_star_metadata.process(five_star);
             }
-            Rarity::FourStar(four_star) => {
+            Pull::FourStar(four_star) => {
                 self.four_star_metadata.process(four_star);
             }
             _ => {}

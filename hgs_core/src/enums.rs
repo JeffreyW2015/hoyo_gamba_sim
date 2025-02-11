@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub enum Rarity {
+pub enum Pull {
     ThreeStar,
     FourStar(FourStarType),
     FiveStar(FiveStarType),
