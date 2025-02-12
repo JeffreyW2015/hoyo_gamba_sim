@@ -77,12 +77,16 @@ impl GachaState {
     }
 
     fn roll_five_star<R: Rng>(&self, rng: &mut R) -> FiveStarType {
-        let roll: f64 = rng.random();
-
-        if roll < self.settings.five_star_limited_rate {
-            FiveStarType::Limited
-        } else {
-            FiveStarType::Standard
+        match self.settings.five_star_limited_rate {
+            Some(rate) => {
+                let roll: f64 = rng.random();
+                if roll < rate {
+                    FiveStarType::Limited
+                } else {
+                    FiveStarType::Standard
+                }
+            },
+            None => FiveStarType::Standard
         }
     }
 
@@ -245,7 +249,7 @@ mod tests {
         let mut state = GachaState::new(settings);
         state.five_star_pity = state.settings.five_star_hard_pity - 1; // guarantee next
 
-        let initial = ((state.settings.five_star_limited_rate + 0.1) * u64::MAX as f64) as u64; // "lose" roll, hence + 0.1
+        let initial = ((state.settings.five_star_limited_rate.unwrap() + 0.1) * u64::MAX as f64) as u64; // "lose" roll, hence + 0.1
         let mut rng = StepRng::new(initial, 0);
 
         let pull = state.pull(&mut rng).unwrap();
@@ -261,7 +265,7 @@ mod tests {
         let mut state = GachaState::new(settings);
         state.five_star_pity = state.settings.five_star_hard_pity - 1; // guarantee next
 
-        let initial = ((state.settings.five_star_limited_rate - 0.1) * u64::MAX as f64) as u64;
+        let initial = ((state.settings.five_star_limited_rate.unwrap() - 0.1) * u64::MAX as f64) as u64;
         let mut rng = StepRng::new(initial, 0);
 
         let pull = state.pull(&mut rng).unwrap();

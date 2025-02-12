@@ -9,7 +9,7 @@ mod history;
 fn main() {
     let start = Instant::now();
     // let settings = Settings::load_from_file("settings.json").unwrap();
-    let settings = Settings::from_banner(hgs_core::enums::Banner::LightCone);
+    let settings = Settings::from_banner(hgs_core::enums::Banner::Standard);
     let mut state = GachaState::new(settings);
     let mut rng: rand::prelude::ThreadRng = rng();
 
