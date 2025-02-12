@@ -1,13 +1,12 @@
-pub mod settings;
-use settings::Settings;
+use rand::Rng;
 
 pub mod enums;
-use enums::{FiveStarType, FourStarBanner, FourStarLoss, FourStarType, Pull};
-
 pub mod errors;
-use errors::PullError;
+pub mod settings;
 
-use rand::Rng;
+use enums::{FiveStarType, FourStarBanner, FourStarLoss, FourStarType, Pull};
+use errors::PullError;
+use settings::Settings;
 
 pub struct GachaState {
     five_star_guaranteed: bool,
@@ -71,7 +70,7 @@ impl GachaState {
 
         self.five_star_guaranteed = match pull {
             FiveStarType::Limited => false,
-            FiveStarType::Standard => true
+            FiveStarType::Standard => true,
         };
 
         pull
@@ -142,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_simulate_pull_five_star() {
-        let settings = Settings::default();
+        let settings = Settings::from_banner(enums::Banner::Character);
         let initial = (settings.five_star_base_rate * u64::MAX as f64) as u64; // just 'barely', 0 would also work
         let mut state = GachaState::new(settings);
         let mut rng = StepRng::new(initial, 0);
@@ -156,7 +155,7 @@ mod tests {
 
     #[test]
     fn test_simulate_pull_four_star() {
-        let settings = Settings::default();
+        let settings = Settings::from_banner(enums::Banner::Character);
         let initial = ((settings.five_star_base_rate + settings.four_star_base_rate)
             * u64::MAX as f64) as u64;
         let mut state = GachaState::new(settings);
@@ -174,7 +173,7 @@ mod tests {
 
     #[test]
     fn test_simulate_pull_three_star() {
-        let settings = Settings::default();
+        let settings = Settings::from_banner(enums::Banner::Character);
         let initial = ((settings.five_star_base_rate + settings.four_star_base_rate + 1f64)
             * u64::MAX as f64) as u64;
         let mut state = GachaState::new(settings);
@@ -188,7 +187,7 @@ mod tests {
 
     #[test]
     fn test_simulate_pull_hard_pity_five_star() {
-        let settings = Settings::default();
+        let settings = Settings::from_banner(enums::Banner::Character);
         let mut rng = StepRng::new(0, 0);
         let mut state = GachaState::new(settings);
         state.five_star_pity = state.settings.five_star_hard_pity - 1;
@@ -201,7 +200,7 @@ mod tests {
 
     #[test]
     fn test_simulate_pull_soft_pity_five_star() {
-        let settings = Settings::default();
+        let settings = Settings::from_banner(enums::Banner::Character);
         let mut state = GachaState::new(settings);
         state.five_star_pity = state.settings.five_star_soft_pity + 1u8;
         let pity_increase = (state.five_star_pity - (state.settings.five_star_soft_pity - 1))
@@ -220,7 +219,7 @@ mod tests {
 
     #[test]
     fn test_simulate_pull_soft_pity_multiple_rolls() {
-        let settings = Settings::default();
+        let settings = Settings::from_banner(enums::Banner::Character);
         let mut state = GachaState::new(settings);
         state.five_star_pity = state.settings.five_star_soft_pity - 2u8;
         let pity_increase = state.settings.five_star_soft_pity_rate_increase;
@@ -242,7 +241,7 @@ mod tests {
 
     #[test]
     fn test_simulate_pull_five_star_standard() {
-        let settings = Settings::default();
+        let settings = Settings::from_banner(enums::Banner::Character);
         let mut state = GachaState::new(settings);
         state.five_star_pity = state.settings.five_star_hard_pity - 1; // guarantee next
 
@@ -258,7 +257,7 @@ mod tests {
 
     #[test]
     fn test_simulate_pull_five_star_limited() {
-        let settings = Settings::default();
+        let settings = Settings::from_banner(enums::Banner::Character);
         let mut state = GachaState::new(settings);
         state.five_star_pity = state.settings.five_star_hard_pity - 1; // guarantee next
 

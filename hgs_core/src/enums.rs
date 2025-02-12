@@ -1,3 +1,10 @@
+pub enum Banner {
+    Standard,
+    Character,
+    LightCone,
+    Departure
+}
+
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Pull {
     ThreeStar,

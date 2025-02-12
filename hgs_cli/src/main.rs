@@ -8,11 +8,12 @@ mod history;
 
 fn main() {
     let start = Instant::now();
-    let settings = Settings::load_from_file("settings.json").unwrap();
+    // let settings = Settings::load_from_file("settings.json").unwrap();
+    let settings = Settings::from_banner(hgs_core::enums::Banner::LightCone);
     let mut state = GachaState::new(settings);
     let mut rng: rand::prelude::ThreadRng = rng();
 
-    let num_pulls = 1_000_000;
+    let num_pulls = 1000;
     let mut pulls = PullHistory::new();
 
     for _ in 0..num_pulls {
@@ -24,7 +25,7 @@ fn main() {
     println!("=======\n");
     println!("Total pulls: {}", pulls.total_count());
     display_five_star_info(&pulls);
-    display_four_star_info(&pulls);
+    // display_four_star_info(&pulls);
 
     let duration = start.elapsed();
     println!("Time taken {:.2?} seconds", duration);
