@@ -9,11 +9,11 @@ mod history;
 fn main() {
     let start = Instant::now();
     // let settings = Settings::load_from_file("settings.json").unwrap();
-    let settings = Settings::from_banner(hgs_core::enums::Banner::Standard);
+    let settings = Settings::from_banner(hgs_core::enums::Banner::Character);
     let mut state = GachaState::new(settings);
     let mut rng: rand::prelude::ThreadRng = rng();
 
-    let num_pulls = 1000;
+    let num_pulls = 2_000_000;
     let mut pulls = PullHistory::new();
 
     for _ in 0..num_pulls {

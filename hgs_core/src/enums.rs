@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Banner {
     Standard,
     Character,

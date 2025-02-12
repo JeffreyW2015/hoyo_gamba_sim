@@ -4,15 +4,28 @@ use crate::enums::Banner;
 
 #[derive(serde::Deserialize, Debug)]
 pub struct Settings {
-    pub five_star_base_rate: f64,
-    pub five_star_hard_pity: u8,
-    pub five_star_soft_pity: u8,
-    pub five_star_soft_pity_rate_increase: f64,
-    pub five_star_limited_rate: Option<f64>,
+    pub five_star_settings: RaritySettings,
+    pub four_star_settings: RaritySettings,
+}
 
-    pub four_star_base_rate: f64,
-    pub four_star_hard_pity: u8,
-    pub four_star_banner_rate: f64,
+#[derive(serde::Deserialize, Debug)]
+pub struct RaritySettings {
+    pub base_rate: f64,
+    pub hard_pity: u8,
+    pub soft_pity_settings: Option<SoftPitySettings>,
+    pub limited_rate: Option<f64>,
+}
+
+impl RaritySettings {
+    pub fn guarantee(&self) -> Option<bool> {
+        self.limited_rate.map(|_| false)
+    }
+}
+
+#[derive(serde::Deserialize, Debug, Clone, Copy)]
+pub struct SoftPitySettings {
+    pub pity_start: u8,
+    pub rate_increase: f64,
 }
 
 impl Settings {
@@ -28,49 +41,69 @@ impl Settings {
     pub fn from_banner(banner: Banner) -> Self {
         match banner {
             Banner::Character => Settings {
-                five_star_base_rate: 0.006, // 0.6%
-                five_star_hard_pity: 90,
-                five_star_soft_pity: 74,
-                five_star_soft_pity_rate_increase: 0.06, // 6%
-                five_star_limited_rate: Some(0.55), // 50/50 is more like 55/45, maybe even higher
-
-                four_star_base_rate: 0.051, // 5.1%
-                four_star_hard_pity: 10,
-                four_star_banner_rate: 0.5, // 50%
+                five_star_settings: RaritySettings {
+                    base_rate: 0.006, 
+                    hard_pity: 90,
+                    soft_pity_settings: Some(SoftPitySettings {
+                        pity_start: 74,
+                        rate_increase: 0.06
+                    }),
+                    limited_rate: Some(0.55),
+                },
+                four_star_settings: RaritySettings {
+                    base_rate: 0.051,
+                    hard_pity: 10,
+                    soft_pity_settings: None,
+                    limited_rate: Some(0.5),
+                },
             },
             Banner::LightCone => Settings {
-                five_star_base_rate: 0.008, // 0.8%
-                five_star_hard_pity: 80,
-                five_star_soft_pity: 66,
-                five_star_soft_pity_rate_increase: 0.07, // 7%
-                five_star_limited_rate: Some(0.75), // 75%
-
-                four_star_base_rate: 0.066, // 6.6%
-                four_star_hard_pity: 10,
-                four_star_banner_rate: 0.75, // 75%
+                five_star_settings: RaritySettings {
+                    base_rate: 0.008,
+                    hard_pity: 80,
+                    soft_pity_settings: Some(SoftPitySettings {
+                        pity_start: 66,
+                        rate_increase: 0.07
+                    }),
+                    limited_rate: Some(0.75),
+                },
+                four_star_settings: RaritySettings {
+                    base_rate: 0.066, 
+                    hard_pity: 10,
+                    soft_pity_settings: None,
+                    limited_rate: Some(0.75), 
+                },
             },
-            // same as character, but no 50/50 loss, though there is 50/50 always for character vs lightcone...
             Banner::Standard => Settings {
-                five_star_base_rate: 0.006, // 0.6%
-                five_star_hard_pity: 90,
-                five_star_soft_pity: 74,
-                five_star_soft_pity_rate_increase: 0.06, // 6%
-                five_star_limited_rate: None,
-
-                four_star_base_rate: 0.051, // 5.1%
-                four_star_hard_pity: 10,
-                four_star_banner_rate: 0.5, // 50%
+                five_star_settings: RaritySettings {
+                    base_rate: 0.006, 
+                    hard_pity: 90,
+                    soft_pity_settings: Some(SoftPitySettings {
+                        pity_start: 74,
+                        rate_increase: 0.06
+                    }),
+                    limited_rate: None,
+                },
+                four_star_settings: RaritySettings {
+                    base_rate: 0.051,
+                    hard_pity: 10,
+                    soft_pity_settings: None,
+                    limited_rate: None,
+                },
             },
             Banner::Departure => Settings {
-                five_star_base_rate: 0.006, // 0.6%
-                five_star_hard_pity: 90,
-                five_star_soft_pity: 74,
-                five_star_soft_pity_rate_increase: 0.06, // 6%
-                five_star_limited_rate: None,
-
-                four_star_base_rate: 0.051, // 5.1%
-                four_star_hard_pity: 10,
-                four_star_banner_rate: 0.5, // 50%
+                five_star_settings: RaritySettings {
+                    base_rate: 0.006, 
+                    hard_pity: 50,
+                    soft_pity_settings: None,
+                    limited_rate: None,
+                },
+                four_star_settings: RaritySettings {
+                    base_rate: 0.051,
+                    hard_pity: 10,
+                    soft_pity_settings: None,
+                    limited_rate: None,
+                },
             },
         }
     }
