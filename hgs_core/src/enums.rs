@@ -13,6 +13,13 @@ pub enum Pull {
     FiveStar(FiveStarType),
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum Rarity {
+    ThreeStar,
+    FourStar,
+    FiveStar,
+}
+
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum FiveStarType {
     Standard,

@@ -13,7 +13,7 @@ fn main() {
     let mut state = GachaState::new(settings);
     let mut rng: rand::prelude::ThreadRng = rng();
 
-    let num_pulls = 2_000_000;
+    let num_pulls = 1_000_000;
     let mut pulls = PullHistory::new();
 
     for _ in 0..num_pulls {
@@ -25,13 +25,15 @@ fn main() {
     println!("=======\n");
     println!("Total pulls: {}", pulls.total_count());
     display_five_star_info(&pulls);
-    // display_four_star_info(&pulls);
+    display_four_star_info(&pulls);
+
+    // display_five_star_pity_map(pulls.five_star_metadata());
 
     let duration = start.elapsed();
     println!("Time taken {:.2?} seconds", duration);
 }
 
-fn _display_five_star_pity_map(metadata: &FiveStarMetadata) {
+fn display_five_star_pity_map(metadata: &FiveStarMetadata) {
     let mut sorted_history: Vec<_> = metadata.pity_to_pulls.iter().collect();
     sorted_history.sort_by(|a, b| a.0.cmp(&b.0));
     for (pity_count, _) in sorted_history {

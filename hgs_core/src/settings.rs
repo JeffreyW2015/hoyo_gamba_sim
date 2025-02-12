@@ -11,20 +11,22 @@ pub struct Settings {
 #[derive(serde::Deserialize, Debug)]
 pub struct RaritySettings {
     pub base_rate: f64,
-    pub hard_pity: u8,
+    pub hard_pity: Option<u64>,
     pub soft_pity_settings: Option<SoftPitySettings>,
-    pub limited_rate: Option<f64>,
+    pub banner_rate: Option<f64>,
+
+    pub guarantee_enabled: bool,
 }
 
 impl RaritySettings {
-    pub fn guarantee(&self) -> Option<bool> {
-        self.limited_rate.map(|_| false)
+    pub fn use_pity_state(&self) -> bool {
+        self.guarantee_enabled || self.hard_pity.is_some()
     }
 }
 
 #[derive(serde::Deserialize, Debug, Clone, Copy)]
 pub struct SoftPitySettings {
-    pub pity_start: u8,
+    pub pity_start: u64,
     pub rate_increase: f64,
 }
 
@@ -43,66 +45,74 @@ impl Settings {
             Banner::Character => Settings {
                 five_star_settings: RaritySettings {
                     base_rate: 0.006, 
-                    hard_pity: 90,
+                    hard_pity: Some(90),
                     soft_pity_settings: Some(SoftPitySettings {
                         pity_start: 74,
                         rate_increase: 0.06
                     }),
-                    limited_rate: Some(0.55),
+                    banner_rate: Some(0.55),
+                    guarantee_enabled: true,
                 },
                 four_star_settings: RaritySettings {
                     base_rate: 0.051,
-                    hard_pity: 10,
+                    hard_pity: Some(10),
                     soft_pity_settings: None,
-                    limited_rate: Some(0.5),
+                    banner_rate: Some(0.5),
+                    guarantee_enabled: true,
                 },
             },
             Banner::LightCone => Settings {
                 five_star_settings: RaritySettings {
                     base_rate: 0.008,
-                    hard_pity: 80,
+                    hard_pity: Some(80),
                     soft_pity_settings: Some(SoftPitySettings {
                         pity_start: 66,
                         rate_increase: 0.07
                     }),
-                    limited_rate: Some(0.75),
+                    banner_rate: Some(0.75),
+                    guarantee_enabled: true,
                 },
                 four_star_settings: RaritySettings {
                     base_rate: 0.066, 
-                    hard_pity: 10,
+                    hard_pity: Some(10),
                     soft_pity_settings: None,
-                    limited_rate: Some(0.75), 
+                    banner_rate: Some(0.75), 
+                    guarantee_enabled: true,
                 },
             },
             Banner::Standard => Settings {
                 five_star_settings: RaritySettings {
                     base_rate: 0.006, 
-                    hard_pity: 90,
+                    hard_pity: Some(90),
                     soft_pity_settings: Some(SoftPitySettings {
                         pity_start: 74,
                         rate_increase: 0.06
                     }),
-                    limited_rate: None,
+                    banner_rate: None,
+                    guarantee_enabled: false,
                 },
                 four_star_settings: RaritySettings {
                     base_rate: 0.051,
-                    hard_pity: 10,
+                    hard_pity: Some(10),
                     soft_pity_settings: None,
-                    limited_rate: None,
+                    banner_rate: None,
+                    guarantee_enabled: false,
                 },
             },
             Banner::Departure => Settings {
                 five_star_settings: RaritySettings {
                     base_rate: 0.006, 
-                    hard_pity: 50,
+                    hard_pity: Some(50),
                     soft_pity_settings: None,
-                    limited_rate: None,
+                    banner_rate: None,
+                    guarantee_enabled: false,
                 },
                 four_star_settings: RaritySettings {
                     base_rate: 0.051,
-                    hard_pity: 10,
+                    hard_pity: Some(10),
                     soft_pity_settings: None,
-                    limited_rate: None,
+                    banner_rate: None,
+                    guarantee_enabled: false,
                 },
             },
         }
