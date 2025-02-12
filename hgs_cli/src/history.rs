@@ -34,8 +34,8 @@ impl PullHistory {
         }
     }
 
-    pub fn total_count(&self) -> usize {
-        self.pulls.len()
+    pub fn total_count(&self) -> u64 {
+        self.pulls.len() as u64
     }
 
     pub fn five_star_metadata(&self) -> &FiveStarMetadata {
@@ -48,15 +48,15 @@ impl PullHistory {
 }
 
 pub struct FiveStarMetadata {
-    pub pity_to_pulls: HashMap<u8, HashMap<FiveStarType, usize>>,
-    pub limited_pulls: usize,
-    pub standard_pulls: usize,
-    pub pity: u8,
+    pub pity_to_pulls: HashMap<u64, HashMap<FiveStarType, u64>>,
+    pub limited_pulls: u64,
+    pub standard_pulls: u64,
+    pub pity: u64,
 
     pub next_guaranteed: bool,
-    pub wins: usize,
-    pub losses: usize,
-    pub guaranteeds: usize,
+    pub wins: u64,
+    pub losses: u64,
+    pub guaranteeds: u64,
 }
 
 impl FiveStarMetadata {
@@ -73,11 +73,11 @@ impl FiveStarMetadata {
         }
     }
 
-    pub fn total(&self) -> usize {
+    pub fn total(&self) -> u64 {
         self.limited_pulls + self.standard_pulls
     }
 
-    pub fn _pity_of_type(&self, pity: u8, five_star: FiveStarType) -> usize {
+    pub fn _pity_of_type(&self, pity: u64, five_star: FiveStarType) -> u64 {
         self.pity_to_pulls
             .get(&pity)
             .and_then(|inner| inner.get(&five_star))
@@ -120,18 +120,18 @@ impl FiveStarMetadata {
 }
 
 pub struct FourStarMetadata {
-    pub pity_to_pulls: HashMap<u8, HashMap<FourStarType, usize>>,
-    pub a_pulls: usize,
-    pub b_pulls: usize,
-    pub c_pulls: usize,
-    pub character_non_banner_pulls: usize,
-    pub light_cone_pulls: usize,
-    pub pity: u8,
+    pub pity_to_pulls: HashMap<u64, HashMap<FourStarType, u64>>,
+    pub a_pulls: u64,
+    pub b_pulls: u64,
+    pub c_pulls: u64,
+    pub character_non_banner_pulls: u64,
+    pub light_cone_pulls: u64,
+    pub pity: u64,
 
     pub next_guaranteed: bool,
-    pub wins: usize,
-    pub losses: usize,
-    pub guaranteeds: usize,
+    pub wins: u64,
+    pub losses: u64,
+    pub guaranteeds: u64,
 }
 
 impl FourStarMetadata {
@@ -151,19 +151,19 @@ impl FourStarMetadata {
         }
     }
 
-    pub fn banners(&self) -> usize {
+    pub fn banners(&self) -> u64 {
         self.a_pulls + self.b_pulls + self.c_pulls
     }
 
-    pub fn non_banners(&self) -> usize {
+    pub fn non_banners(&self) -> u64 {
         self.character_non_banner_pulls + self.light_cone_pulls
     }
 
-    pub fn total(&self) -> usize {
+    pub fn total(&self) -> u64 {
         self.banners() + self.non_banners()
     }
 
-    pub fn _pity_of_type(&self, pity: u8, four_star: FourStarType) -> usize {
+    pub fn pity_of_type(&self, pity: u64, four_star: FourStarType) -> u64 {
         self.pity_to_pulls
             .get(&pity)
             .and_then(|inner| inner.get(&four_star))

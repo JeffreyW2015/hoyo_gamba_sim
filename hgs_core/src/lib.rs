@@ -15,7 +15,7 @@ pub struct PityState {
 }
 
 impl PityState {
-    pub fn from_rarity_settings(settings: &RaritySettings) -> Option<Self>{
+    pub fn from_rarity_settings(settings: &RaritySettings) -> Option<Self> {
         settings.use_pity_state().then(|| PityState {
             guaranteed: settings.guarantee_enabled.then(|| false),
             current: 0,
@@ -78,17 +78,22 @@ impl GachaState {
     }
 
     fn check_hard_pity(&self, rarity: Rarity) -> Result<bool, PullError> {
-        let determine_result = |pity_state_option: &Option<PityState>, settings: &RaritySettings| -> Result<bool, PullError>{
-            match(pity_state_option, settings.hard_pity) {
-                (Some(pity_state), Some(hard_pity)) => Ok(pity_state.current >= hard_pity),
-                (_, None) => Ok(false),
-                (None, Some(_)) => Err(PullError::InvalidPitySettings),
-            }
+        let (maybe_pity_state, maybe_hard_pity) = match rarity {
+            Rarity::FiveStar => (
+                &self.five_star_state,
+                &self.settings.five_star_settings.hard_pity,
+            ),
+            Rarity::FourStar => (
+                &self.four_star_state,
+                &self.settings.four_star_settings.hard_pity,
+            ),
+            Rarity::ThreeStar => return Err(PullError::InvalidRarity(Rarity::ThreeStar)),
         };
-        match rarity {
-            Rarity::FiveStar => determine_result(&self.five_star_state, &self.settings.five_star_settings),
-            Rarity::FourStar => determine_result(&self.four_star_state, &self.settings.four_star_settings),
-            Rarity::ThreeStar => Err(PullError::InvalidRarity(Rarity::ThreeStar))
+
+        match (maybe_pity_state, maybe_hard_pity) {
+            (Some(pity_state), Some(hard_pity)) => Ok(pity_state.current >= *hard_pity),
+            (_, None) => Ok(false),
+            (None, Some(_)) => Err(PullError::InvalidPitySettings),
         }
     }
 
@@ -100,9 +105,15 @@ impl GachaState {
         };
 
         match (settings.soft_pity_settings, state_option) {
-            (Some(soft_pity_settings), Some(pity_state)) if pity_state.current >= soft_pity_settings.pity_start => {
-                Ok(GachaState::soft_pity_rate(pity_state.current, &soft_pity_settings, settings.base_rate))
-            },
+            (Some(soft_pity_settings), Some(pity_state))
+                if pity_state.current >= soft_pity_settings.pity_start =>
+            {
+                Ok(GachaState::soft_pity_rate(
+                    pity_state.current,
+                    &soft_pity_settings,
+                    settings.base_rate,
+                ))
+            }
             (Some(_), None) => Err(PullError::InvalidPitySettings),
             _ => Ok(settings.base_rate),
         }
@@ -182,10 +193,10 @@ impl GachaState {
                     if roll < rate {
                         let banner = self.pull_banner_four_star(rng)?;
                         return Ok(FourStarType::Banner(banner));
-                    } 
+                    }
                 }
                 Ok(FourStarType::Loss(FourStarLoss::Character))
-            },
+            }
             1 => Ok(FourStarType::Loss(FourStarLoss::LightCone)),
             _ => Err(PullError::ImpossibleRoll),
         }
