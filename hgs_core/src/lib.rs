@@ -104,7 +104,7 @@ impl GachaState {
                 Ok(GachaState::soft_pity_rate(pity_state.current, &soft_pity_settings, settings.base_rate))
             },
             (Some(_), None) => Err(PullError::InvalidPitySettings),
-            _ => Ok(self.settings.five_star_settings.base_rate),
+            _ => Ok(settings.base_rate),
         }
     }
 
@@ -177,14 +177,15 @@ impl GachaState {
         let roll = rng.random_range(0..2);
         match roll {
             0 => {
-                let roll: f64 = rng.random();
-                if roll < self.settings.four_star_settings.base_rate {
-                    let banner = self.pull_banner_four_star(rng)?;
-                    Ok(FourStarType::Banner(banner))
-                } else {
-                    Ok(FourStarType::Loss(FourStarLoss::Character))
+                if let Some(rate) = self.settings.four_star_settings.banner_rate {
+                    let roll: f64 = rng.random();
+                    if roll < rate {
+                        let banner = self.pull_banner_four_star(rng)?;
+                        return Ok(FourStarType::Banner(banner));
+                    } 
                 }
-            }
+                Ok(FourStarType::Loss(FourStarLoss::Character))
+            },
             1 => Ok(FourStarType::Loss(FourStarLoss::LightCone)),
             _ => Err(PullError::ImpossibleRoll),
         }
