@@ -8,8 +8,7 @@ mod history;
 
 fn main() {
     let start = Instant::now();
-    // let settings = Settings::load_from_file("settings.json").unwrap();
-    let settings = Settings::from_banner(hgs_core::enums::Banner::Character);
+    let mut settings = Settings::from_banner(hgs_core::enums::Banner::Character);
     let mut state = GachaState::new(settings);
     let mut rng: rand::prelude::ThreadRng = rng();
 
@@ -17,7 +16,7 @@ fn main() {
     let mut pulls = PullHistory::new();
 
     for _ in 0..num_pulls {
-        let pull = state.pull(&mut rng).expect("error occurred while pulling");
+        let pull = state.pull(&mut rng);
         pulls.add(pull)
     }
 
@@ -53,6 +52,10 @@ fn display_five_star_info(pulls: &PullHistory) {
     println!("----------\n");
     let metadata = pulls.five_star_metadata();
     println!("Total Five Stars: {}", metadata.total());
+    println!(
+        "Effective percentage: {}",
+        metadata.total() as f64 / pulls.total_count() as f64
+    );
     println!("Total Limited: {}", metadata.limited_pulls);
     if metadata.total() > 0 {
         println!(

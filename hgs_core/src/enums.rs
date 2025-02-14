@@ -3,7 +3,7 @@ pub enum Banner {
     Standard,
     Character,
     LightCone,
-    Departure
+    Departure,
 }
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -42,5 +42,5 @@ pub enum FourStarBanner {
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum FourStarLoss {
     Character,
-    LightCone
+    LightCone,
 }
