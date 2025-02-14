@@ -10,6 +10,18 @@ mod mock_rng;
 
 use mock_rng::MockRng;
 
+fn run_pull_test (
+    settings: &Settings,
+    roll_sequence: Vec<u64>,
+    expected_pull: Pull,
+) {
+    let rng = &mut MockRng::new(roll_sequence);
+    let mut state = GachaState::new(settings.clone());
+
+    let pull = state.pull(rng);
+    assert_eq!(pull, expected_pull);
+}
+
 #[test]
 fn test_pull_three_star() {
     let settings = Settings::from_banner(enums::Banner::Character);
@@ -18,103 +30,69 @@ fn test_pull_three_star() {
             * u64::MAX as f64) as u64;
     let upper_bound = u64::MAX;
 
-    let rng = &mut MockRng::new(vec![lower_bound, upper_bound]);
-    let mut state = GachaState::new(settings);
+    let roll_three_star_lower_bound = vec![lower_bound];
+    let roll_three_star_upper_bound = vec![upper_bound];
 
-    let pull = state.pull(rng);
+    let test_cases = vec![
+        roll_three_star_lower_bound,
+        roll_three_star_upper_bound,
+    ];
 
-    assert_eq!(pull, Pull::ThreeStar);
+    for roll_sequence in test_cases {
+        run_pull_test(&settings, roll_sequence, Pull::ThreeStar);
+    }
+
 }
 
 #[test]
 fn test_pull_four_star() {
     let settings = Settings::from_banner(enums::Banner::Character);
+
     let lower_bound = ((settings.five_star_settings.base_rate + 0.001) * u64::MAX as f64) as u64;
     let upper_bound = ((settings.five_star_settings.base_rate
         + settings.four_star_settings.base_rate)
         * u64::MAX as f64) as u64;
+
     let roll_character = 0;
     let roll_light_cone = u32::MAX as u64;
+
     let roll_banner = 0;
     let roll_non_banner = u64::MAX;
 
-    // range 3,
-    let roll_banner_a = 0;
-    let roll_banner_b = (u32::MAX / 2) as u64;
-    let roll_banner_c = u32::MAX as u64;
-
-    let roll_a_sequence = vec![lower_bound, roll_character, roll_banner, roll_banner_a];
-    let roll_b_sequence = vec![upper_bound, roll_character, roll_banner, roll_banner_b];
-    let roll_c_sequence = vec![lower_bound, roll_character, roll_banner, roll_banner_c];
-    let roll_non_banner_character_sequence =
-        vec![lower_bound, roll_character, roll_non_banner, roll_banner_a];
+    let roll_banner_a = vec![lower_bound, roll_character, roll_banner, 0];
+    let roll_banner_b = vec![upper_bound, roll_character, roll_banner, (u32::MAX / 2) as u64];
+    let roll_banner_c = vec![lower_bound, roll_character, roll_banner, u32::MAX as u64];
+    let roll_non_banner_character = vec![lower_bound, roll_character, roll_non_banner];
     let roll_light_cone_sequence = vec![lower_bound, roll_light_cone];
 
-    let rng: &mut MockRng = &mut MockRng::new(roll_a_sequence);
-    let mut state = GachaState::new(settings);
+    let test_cases = vec![
+        (roll_banner_a, Pull::FourStar(FourStarType::Banner(FourStarBanner::A))),
+        (roll_banner_b, Pull::FourStar(FourStarType::Banner(FourStarBanner::B))),
+        (roll_banner_c, Pull::FourStar(FourStarType::Banner(FourStarBanner::C))),
+        (roll_non_banner_character, Pull::FourStar(FourStarType::Loss(enums::FourStarLoss::Character))),
+        (roll_light_cone_sequence, Pull::FourStar(FourStarType::Loss(enums::FourStarLoss::LightCone))),
+    ];
 
-    let pull = state.pull(rng);
-    assert_eq!(
-        pull,
-        Pull::FourStar(FourStarType::Banner(FourStarBanner::A))
-    );
-
-    let rng: &mut MockRng = &mut MockRng::new(roll_b_sequence);
-    let mut state = GachaState::new(settings);
-
-    let pull = state.pull(rng);
-    assert_eq!(
-        pull,
-        Pull::FourStar(FourStarType::Banner(FourStarBanner::B))
-    );
-
-    let rng: &mut MockRng = &mut MockRng::new(roll_c_sequence);
-    let mut state = GachaState::new(settings);
-
-    let pull = state.pull(rng);
-    assert_eq!(
-        pull,
-        Pull::FourStar(FourStarType::Banner(FourStarBanner::C))
-    );
-
-    let rng: &mut MockRng = &mut MockRng::new(roll_non_banner_character_sequence);
-    let mut state = GachaState::new(settings);
-
-    let pull = state.pull(rng);
-    assert_eq!(
-        pull,
-        Pull::FourStar(FourStarType::Loss(enums::FourStarLoss::Character))
-    );
-
-    let rng: &mut MockRng = &mut MockRng::new(roll_light_cone_sequence);
-    let mut state = GachaState::new(settings);
-
-    let pull = state.pull(rng);
-    assert_eq!(
-        pull,
-        Pull::FourStar(FourStarType::Loss(enums::FourStarLoss::LightCone))
-    );
+    for (roll_sequence, expected_pull) in test_cases {
+        run_pull_test(&settings, roll_sequence, expected_pull);
+    }
 }
 
 #[test]
 fn test_pull_five_star() {
     let settings = Settings::from_banner(enums::Banner::Character);
     let lower_bound = 0;
-    let roll_banner = 0;
-    let roll_standard = u64::MAX;
+    let upper_bound = ((settings.five_star_settings.base_rate) * u64::MAX as f64) as u64;
 
-    let roll_limited_sequence = vec![lower_bound, roll_banner];
-    let roll_standard_sequence = vec![lower_bound, roll_standard];
+    let roll_limited= vec![lower_bound, 0];
+    let roll_standard= vec![upper_bound, u64::MAX];
 
-    let rng: &mut MockRng = &mut MockRng::new(roll_limited_sequence);
-    let mut state = GachaState::new(settings);
+    let test_cases = vec![
+        (roll_limited, Pull::FiveStar(FiveStarType::Limited)),
+        (roll_standard, Pull::FiveStar(FiveStarType::Standard)),
+    ];
 
-    let pull = state.pull(rng);
-    assert_eq!(pull, Pull::FiveStar(FiveStarType::Limited));
-
-    let rng: &mut MockRng = &mut MockRng::new(roll_standard_sequence);
-    let mut state = GachaState::new(settings);
-
-    let pull = state.pull(rng);
-    assert_eq!(pull, Pull::FiveStar(FiveStarType::Standard));
+    for (roll_sequence, expected_pull) in test_cases {
+        run_pull_test(&settings, roll_sequence, expected_pull);
+    }
 }
