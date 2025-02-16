@@ -1,143 +1,143 @@
-use std::time::Instant;
+// use std::time::Instant;
 
-use hgs_core::{enums::FiveStarType, settings::Settings, GachaState};
-use history::{FiveStarMetadata, PullHistory};
-use rand::rng;
+// use hgs_core::{enums::FiveStarType, settings::Settings, };
+// use history::{FiveStarMetadata, PullHistory};
+// use rand::rng;
 
-mod history;
+// mod history;
 
 fn main() {
-    let start = Instant::now();
-    let mut settings = Settings::from_banner(hgs_core::enums::Banner::Character);
-    let mut state = GachaState::new(settings);
-    let mut rng: rand::prelude::ThreadRng = rng();
+    // let start = Instant::now();
+    // let settings = Settings::from_banner(hgs_core::enums::Banner::LightCone);
+    // let mut state = GachaState::new(settings);
+    // let mut rng: rand::prelude::ThreadRng = rng();
 
-    let num_pulls = 1_000_000;
-    let mut pulls = PullHistory::new();
+    // let num_pulls = 1_000_000;
+    // let mut pulls = PullHistory::new();
 
-    for _ in 0..num_pulls {
-        let pull = state.pull(&mut rng);
-        pulls.add(pull)
-    }
+    // for _ in 0..num_pulls {
+    //     let pull = state.pull(&mut rng);
+    //     pulls.add(pull)
+    // }
 
-    println!("\nSummary");
-    println!("=======\n");
-    println!("Total pulls: {}", pulls.total_count());
-    display_five_star_info(&pulls);
-    display_four_star_info(&pulls);
+    // println!("\nSummary");
+    // println!("=======\n");
+    // println!("Total pulls: {}", pulls.total_count());
+    // display_five_star_info(&pulls);
+    // display_four_star_info(&pulls);
 
-    // display_five_star_pity_map(pulls.five_star_metadata());
+    // // display_five_star_pity_map(pulls.five_star_metadata());
 
-    let duration = start.elapsed();
-    println!("Time taken {:.2?} seconds", duration);
+    // let duration = start.elapsed();
+    // println!("Time taken {:.2?} seconds", duration);
 }
 
-fn display_five_star_pity_map(metadata: &FiveStarMetadata) {
-    let mut sorted_history: Vec<_> = metadata.pity_to_pulls.iter().collect();
-    sorted_history.sort_by(|a, b| a.0.cmp(&b.0));
-    for (pity_count, _) in sorted_history {
-        println!(
-            "Pity {}: {} total, {} Limited, {} Standard",
-            pity_count,
-            metadata._pity_of_type(*pity_count, FiveStarType::Limited)
-                + metadata._pity_of_type(*pity_count, FiveStarType::Standard),
-            metadata._pity_of_type(*pity_count, FiveStarType::Limited),
-            metadata._pity_of_type(*pity_count, FiveStarType::Standard),
-        );
-    }
-}
+// fn display_five_star_pity_map(metadata: &FiveStarMetadata) {
+//     let mut sorted_history: Vec<_> = metadata.pity_to_pulls.iter().collect();
+//     sorted_history.sort_by(|a, b| a.0.cmp(&b.0));
+//     for (pity_count, _) in sorted_history {
+//         println!(
+//             "Pity {}: {} total, {} Limited, {} Standard",
+//             pity_count,
+//             metadata._pity_of_type(*pity_count, FiveStarType::Limited)
+//                 + metadata._pity_of_type(*pity_count, FiveStarType::Standard),
+//             metadata._pity_of_type(*pity_count, FiveStarType::Limited),
+//             metadata._pity_of_type(*pity_count, FiveStarType::Standard),
+//         );
+//     }
+// }
 
-fn display_five_star_info(pulls: &PullHistory) {
-    println!("\nFive Stars");
-    println!("----------\n");
-    let metadata = pulls.five_star_metadata();
-    println!("Total Five Stars: {}", metadata.total());
-    println!(
-        "Effective percentage: {}",
-        metadata.total() as f64 / pulls.total_count() as f64
-    );
-    println!("Total Limited: {}", metadata.limited_pulls);
-    if metadata.total() > 0 {
-        println!(
-            "Wins: {}, Losses: {}, Gauranteeds: {}, Win Ratio: {}",
-            metadata.wins,
-            metadata.losses,
-            metadata.guaranteeds,
-            (metadata.wins as f64) / ((metadata.wins + metadata.losses) as f64)
-        );
-    }
-    println!("Total Standard: {}", metadata.standard_pulls);
+// fn display_five_star_info(pulls: &PullHistory) {
+//     println!("\nFive Stars");
+//     println!("----------\n");
+//     let metadata = pulls.five_star_metadata();
+//     println!("Total Five Stars: {}", metadata.total());
+//     println!(
+//         "Effective percentage: {}",
+//         metadata.total() as f64 / pulls.total_count() as f64
+//     );
+//     println!("Total Limited: {}", metadata.limited_pulls);
+//     if metadata.total() > 0 {
+//         println!(
+//             "Wins: {}, Losses: {}, Gauranteeds: {}, Win Ratio: {}",
+//             metadata.wins,
+//             metadata.losses,
+//             metadata.guaranteeds,
+//             (metadata.wins as f64) / ((metadata.wins + metadata.losses) as f64)
+//         );
+//     }
+//     println!("Total Standard: {}", metadata.standard_pulls);
 
-    if metadata.total() > 0 {
-        println!(
-            "you can expect a 5* every {} pulls",
-            pulls.total_count() / metadata.total()
-        );
-    }
+//     if metadata.total() > 0 {
+//         println!(
+//             "you can expect a 5* every {} pulls",
+//             pulls.total_count() / metadata.total()
+//         );
+//     }
 
-    if metadata.limited_pulls > 0 {
-        println!(
-            "you can expect a limted every {} pulls",
-            pulls.total_count() / metadata.limited_pulls,
-        );
-    }
+//     if metadata.limited_pulls > 0 {
+//         println!(
+//             "you can expect a limted every {} pulls",
+//             pulls.total_count() / metadata.limited_pulls,
+//         );
+//     }
 
-    if metadata.total() > 0 {
-        println!(
-            "limited vs standard average rate: {}%",
-            (metadata.limited_pulls as f64 / metadata.total() as f64) * 100f64
-        );
-    }
-}
+//     if metadata.total() > 0 {
+//         println!(
+//             "limited vs standard average rate: {}%",
+//             (metadata.limited_pulls as f64 / metadata.total() as f64) * 100f64
+//         );
+//     }
+// }
 
-fn display_four_star_info(pulls: &PullHistory) {
-    println!("\nFour Stars");
-    println!("----------\n");
-    let metadata = pulls.four_star_metadata();
-    println!("Total: {}", metadata.total());
-    println!(
-        "A: {}, B: {}, C: {}, Total: {}",
-        metadata.a_pulls,
-        metadata.b_pulls,
-        metadata.c_pulls,
-        metadata.banners()
-    );
+// fn display_four_star_info(pulls: &PullHistory) {
+//     println!("\nFour Stars");
+//     println!("----------\n");
+//     let metadata = pulls.four_star_metadata();
+//     println!("Total: {}", metadata.total());
+//     println!(
+//         "A: {}, B: {}, C: {}, Total: {}",
+//         metadata.a_pulls,
+//         metadata.b_pulls,
+//         metadata.c_pulls,
+//         metadata.banners()
+//     );
 
-    if metadata.banners() > 0 {
-        let a_avg = {
-            if metadata.a_pulls > 0 {
-                pulls.total_count() / metadata.a_pulls
-            } else {
-                0
-            }
-        };
-        let b_avg = {
-            if metadata.b_pulls > 0 {
-                pulls.total_count() / metadata.b_pulls
-            } else {
-                0
-            }
-        };
-        let c_avg = {
-            if metadata.c_pulls > 0 {
-                pulls.total_count() / metadata.c_pulls
-            } else {
-                0
-            }
-        };
-        println!(
-            "N Pulls for\n  - A: {}\n  - B: {}\n  - C: {}\n  - Average for specific: {}\n  - Average for any banner: {}",
-            a_avg,
-            b_avg,
-            c_avg,
-            (a_avg + b_avg + c_avg) / 3,
-            pulls.total_count() / metadata.banners()
-        )
-    }
-    if metadata.total() > 0 {
-        println!(
-            "expect a 4* every {} pulls",
-            pulls.total_count() / metadata.total()
-        )
-    }
-}
+//     if metadata.banners() > 0 {
+//         let a_avg = {
+//             if metadata.a_pulls > 0 {
+//                 pulls.total_count() / metadata.a_pulls
+//             } else {
+//                 0
+//             }
+//         };
+//         let b_avg = {
+//             if metadata.b_pulls > 0 {
+//                 pulls.total_count() / metadata.b_pulls
+//             } else {
+//                 0
+//             }
+//         };
+//         let c_avg = {
+//             if metadata.c_pulls > 0 {
+//                 pulls.total_count() / metadata.c_pulls
+//             } else {
+//                 0
+//             }
+//         };
+//         println!(
+//             "N Pulls for\n  - A: {}\n  - B: {}\n  - C: {}\n  - Average for specific: {}\n  - Average for any banner: {}",
+//             a_avg,
+//             b_avg,
+//             c_avg,
+//             (a_avg + b_avg + c_avg) / 3,
+//             pulls.total_count() / metadata.banners()
+//         )
+//     }
+//     if metadata.total() > 0 {
+//         println!(
+//             "expect a 4* every {} pulls",
+//             pulls.total_count() / metadata.total()
+//         )
+//     }
+// }

@@ -1,4 +1,4 @@
 [workspace]
-members = [ "hgs_cli","hgs_core"]
+members = [ "hgs_cli","hgs_core", "hgs_data"]
 
 resolver = "2"
